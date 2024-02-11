@@ -12,6 +12,7 @@ import {
   findShopWithEmailOrPhone,
   findShopWithEmailAndPassword,
   addShop,
+  updateProducts,
 } from "./dbQueries.js";
 
 const app = express();
@@ -121,16 +122,17 @@ app.post("/api/shop/login", async (req, res) => {
   return res.send(data[0]);
 });
 
-app.post("/api/shop/update", (req, res) => {
-  //   const { error } = validateAddShop(req.body);
-  //   if (error) return res.status(400).send(error.details[0].message);
+app.post("/api/shop/update", async (req, res) => {
+  if (!req.body.shopId) {
+    return res.status(400).send("product id is missing");
+  }
 
-  // check phone number or name exists or not
+  const updateStatus = await updateProducts(req.body.shopId, req.body.products);
 
-  // add shops to db
-
-  const data = [0, 1, 2];
-  return res.send(data);
+  if (!updateStatus) {
+    return res.status(400).send("failed to update products");
+  }
+  return res.send("successfully updated products");
 });
 
 app.post("*", function (req, res) {

@@ -67,7 +67,7 @@ export const getShopDetail = (shopId) => {
 
 export const getShopProducts = (shopId) => {
   return new Promise((resolve) => {
-    let updateQuery = "SELECT * from shop_details WHERE shope_id=?";
+    let updateQuery = "SELECT * from shop_products WHERE shope_id=?";
     let query = mysql.format(updateQuery, [shopId]);
 
     dataBase.query(query, (err, response) => {
@@ -143,5 +143,97 @@ export const addShop = async (
       }
       // rows updated
     });
+  });
+};
+
+export const updateProducts = (shopId, products) => {
+  /*
+  shop_products
+     `id` int NOT NULL AUTO_INCREMENT,
+    `shope_id` int NOT NULL, 
+    `product_id` int NOT NULL, 
+    `status` tinyint(1) DEFAULT '0',
+    `quantity` int DEFAULT 0,
+    */
+
+  const values = [];
+  for (let productId in products) {
+    values.push([
+      shopId,
+      parseInt(productId),
+      products[productId].status ? 1 : 0,
+      parseInt(products[productId].stock),
+    ]);
+  }
+
+  return new Promise((resolve) => {
+    dataBase.getConnection(function (err, connection) {
+      connection.beginTransaction(function (err) {
+        if (err) {
+          //Transaction Error (Rollback and release connection)
+          connection.rollback(function () {
+            connection.release();
+            resolve(0);
+            //Failure
+          });
+        } else {
+          //
+
+          let deleteQuery = "DELETE from shop_products WHERE shope_id = ?";
+          let dquery = mysql.format(deleteQuery, [shopId]);
+          connection.query(dquery, (err, response) => {
+            if (err) {
+              connection.rollback(function () {
+                connection.release();
+                //Failure
+              });
+              resolve(0);
+            } else {
+              /// else
+              let updateQuery =
+                "INSERT INTO shop_products (shope_id,product_id,status,quantity) VALUES ?";
+
+              let query = mysql.format(updateQuery, [values]);
+              connection.query(query, (err, response) => {
+                if (err) {
+                  console.error(" updateProducts error", err);
+                  connection.rollback(function () {
+                    connection.release();
+                    //Failure
+                  });
+                  resolve(0);
+                } else {
+                  // console.log(' setBakerUnavialableDates success ');
+                  connection.commit(function (err) {
+                    if (err) {
+                      connection.rollback(function () {
+                        connection.release();
+                        resolve(0);
+                        //Failure
+                      });
+                    } else {
+                      connection.release();
+                      resolve(1);
+                      //Success
+                    }
+                  });
+                }
+              });
+            }
+          });
+        }
+      });
+    });
+
+    ////current code
+
+    // dataBase.query(query, (err, response) => {
+    //   if (err) {
+    //     console.error(" updateProducts error", err);
+    //     resolve(0);
+    //   } else {
+    //     resolve(1);
+    //   }
+    // });
   });
 };

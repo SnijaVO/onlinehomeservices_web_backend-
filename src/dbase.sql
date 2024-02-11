@@ -44,7 +44,7 @@ CREATE TABLE `shop` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `shop_details` (
+CREATE TABLE `shop_products` (
     `id` int NOT NULL AUTO_INCREMENT,
     `shope_id` int NOT NULL, 
     `product_id` int NOT NULL, 
